@@ -1,4 +1,10 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
+using Unity;
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class LevelGenBlock : MonoBehaviour
 {
@@ -35,6 +41,12 @@ public class LevelGenBlock : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
+    }
+    
+    public void Restart()
+    {
+        Time.timeScale = 1;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); 
     }
 }
