@@ -16,10 +16,13 @@ public class Ball : MonoBehaviour
     public GameObject[] LivesImage;
     public GameObject GameOverPanel;
     public GameObject WinnerPanel;
-    [SerializeField] int BrickCount;
+    [SerializeField] private int BrickCount;
 
     Rigidbody2D rb;
 
+    [Header("Juice")]
+    [SerializeField] public ParticleSystem _landParticles; //For Bricks
+    [SerializeField] private ParticleSystem _jumpParticles; // For Paddle
 
     // Start is called before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -60,6 +63,23 @@ public class Ball : MonoBehaviour
         Debug.Log(collision.gameObject.name);
         if (collision.gameObject.CompareTag("Brick"))
         {
+            if (collision.gameObject.TryGetComponent(out SpriteRenderer brickRenderer))
+            {
+                // Access the main module
+                var main = _landParticles.main;
+
+                // We use a MinMaxGradient to ensure it overrides everything
+                main.startColor = new ParticleSystem.MinMaxGradient(brickRenderer.color);
+            }
+
+            // Move and Play
+            _landParticles.transform.position = collision.transform.position;
+
+            // Force a refresh of the particles
+            _landParticles.Clear();
+            _landParticles.Play();
+            // --------------------------
+
             Destroy(collision.gameObject);
             Score = Score + 10;
             scoreText.text = Score.ToString("00000");
@@ -73,6 +93,14 @@ public class Ball : MonoBehaviour
                 WinnerPanel.SetActive(true);
                 Time.timeScale = 0;
             }
+        }
+        
+        // 2. COLLISION WITH PADDLE (Jump Particles)
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            // Move the particles to the point where the ball touched the paddle
+            _jumpParticles.transform.position = collision.contacts[0].point;
+            _jumpParticles.Play();
         }
     }
 
