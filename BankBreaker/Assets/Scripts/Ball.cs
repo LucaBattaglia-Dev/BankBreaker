@@ -27,9 +27,23 @@ public class Ball : MonoBehaviour
     // Start is called before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        // rb = GetComponent<Rigidbody2D>();
+        // rb.linearVelocity = Vector2.down * 12.5f;
+        // BrickCount = FindAnyObjectByType<LevelGenBlock>().transform.childCount;
+        
         rb = GetComponent<Rigidbody2D>();
         rb.linearVelocity = Vector2.down * 12.5f;
-        BrickCount = FindAnyObjectByType<LevelGenBlock>().transform.childCount;
+
+        // Find every object in the scene tagged "Brick"
+        GameObject[] allBricks = GameObject.FindGameObjectsWithTag("Brick");
+
+        // Subtract 1 to account for the Generator itself having the tag
+        BrickCount = allBricks.Length - 1;
+
+        // Fail-safe: ensure BrickCount doesn't go below 0
+        if (BrickCount < 0) BrickCount = 0;
+
+        Debug.Log("Total Bricks to destroy (excluding Generator): " + BrickCount);
     }
 
     // Update is called once per frame
