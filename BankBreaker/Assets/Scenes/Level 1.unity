@@ -4084,6 +4084,63 @@ ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 903469291671335393, guid: 0bedc242251124f46b4981facd62fee3, type: 3}
   m_PrefabInstance: {fileID: 2069052730}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &5627305602076780579
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2408020838862013939, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
+      propertyPath: m_Name
+      value: SafeLevelGenerator
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316684875600326283, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316684875600326283, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316684875600326283, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316684875600326283, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316684875600326283, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316684875600326283, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316684875600326283, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316684875600326283, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316684875600326283, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6316684875600326283, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f1d3bb11f90a0114d9769d6db1e4361e, type: 3}
 --- !u!1001 &8155457953111810247
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4136,6 +4193,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: CashLevelGenerator
       objectReference: {fileID: 0}
+    - target: {fileID: 4405483083919193552, guid: d843f90a7fe2a84409a44738c1ed1dbc, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4154,3 +4215,4 @@ SceneRoots:
   - {fileID: 201810879}
   - {fileID: 1267017850}
   - {fileID: 1466482255}
+  - {fileID: 5627305602076780579}
