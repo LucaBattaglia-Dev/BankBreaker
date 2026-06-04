@@ -4,8 +4,10 @@ using System.Collections.Generic;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] public float Speed = 5;
-    [SerializeField] public float MaxDistance = 7f;
+    [Header("Movement Settings")]
+    [SerializeField] public float Speed = 5f;
+    [SerializeField] public float MaxDistance = 7f; 
+
     private float MovementHorizontal;
 
     [Header("Movement Particles")]
@@ -16,19 +18,20 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         Debug.Log("Game Started");
-    
     }
 
     // Update is called once per frame
     void Update()
     {
-        //Debug.Log("Game Updating");
+        // 1. Get Horizontal Input Only
         MovementHorizontal = Input.GetAxis("Horizontal");
+
+        // 2. Handle Particles based on horizontal movement
         HandleParticles(MovementHorizontal);
 
+        // 3. Horizontal Movement Only (Clamped)
         if ((MovementHorizontal > 0 && transform.position.x < MaxDistance) || (MovementHorizontal < 0 && transform.position.x > -MaxDistance))
         {
-            // Moves the player using Vector3.right multiplied by movement direction
             transform.position += Vector3.right * MovementHorizontal * Speed * Time.deltaTime;
         }
     }
@@ -40,20 +43,17 @@ public class PlayerMovement : MonoBehaviour
             if (!_moveParticlesRight.isEmitting) _moveParticlesRight.Play();
             _moveParticlesLeft.Stop();
         }
-        // 2. Logic for Moving Left
+        // Logic for Moving Left
         else if (input < 0)
         {
             if (!_moveParticlesLeft.isEmitting) _moveParticlesLeft.Play();
             _moveParticlesRight.Stop();
         }
-        // 3. Logic for Standing Still
+        // Logic for Standing Still
         else
         {
             _moveParticlesRight.Stop();
             _moveParticlesLeft.Stop();
         }
-
-        // float targetScale = Mathf.Abs(MovementHorizontal) > 0 ? 1f : 0.2f;
-        // _moveParticles.transform.localScale = Vector3.Lerp(_moveParticles.transform.localScale, Vector3.one * targetScale, Time.deltaTime * 5f);
     }
 }
