@@ -23,11 +23,31 @@ public class Ball : MonoBehaviour
     [Header("Juice")]
     [SerializeField] public ParticleSystem _landParticles;
     [SerializeField] private ParticleSystem _jumpParticles;
+    
+    [Header("Audio")]
+    [Tooltip("Drag your BlockHit audio clip here")]
+    [SerializeField] private AudioClip blockHit; 
+    [Tooltip("Drag your Paddle/Wall bounce audio clip here")]
+    [SerializeField] private AudioClip paddleSound; 
+    // --- NEW AUDIO VARIABLE ---
+    [Tooltip("Drag your Lose Life audio clip here")]
+    [SerializeField] private AudioClip loseLifeSound; 
+    private AudioSource audioSource;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        ResetBallPhysics();
+        
+        if (!TryGetComponent(out audioSource))
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        
+        Ball[] allBalls = FindObjectsByType<Ball>(FindObjectsSortMode.None);
+        if (allBalls.Length <= 1)
+        {
+            ResetBallPhysics();
+        }
     }
 
     public void InitializeLevelTrack(int index, int totalBricks)
@@ -40,21 +60,48 @@ public class Ball : MonoBehaviour
     {
         if (transform.position.y < MinY)
         {
+            HandleBallLoss();
+            return; 
+        }
+
+        if (rb.linearVelocity.magnitude > MaxVelocity)
+        {
+            rb.linearVelocity = Vector3.ClampMagnitude(rb.linearVelocity, MaxVelocity);
+        }
+    }
+
+    void HandleBallLoss()
+    {
+        Ball[] activeBalls = FindObjectsByType<Ball>(FindObjectsSortMode.None);
+
+        if (activeBalls.Length <= 1)
+        {
+            // --- NEW CODE: PLAY LOSE LIFE SOUND ---
+            // We play this right before checking for Game Over or resetting
+            if (audioSource != null && loseLifeSound != null)
+            {
+                audioSource.pitch = 1f; // Keep it at normal speed/pitch
+                audioSource.PlayOneShot(loseLifeSound, 0.6f); 
+            }
+
             if (Lives <= 0)
             {
                 GameOver();
             }
             else
             {
-                ResetBallPhysics();
                 Lives = Lives - 1;
-                LivesImage[Lives].SetActive(false);
+                if (LivesImage != null && Lives < LivesImage.Length && LivesImage[Lives] != null)
+                {
+                    LivesImage[Lives].SetActive(false);
+                }
+
+                ResetBallPhysics();
             }
         }
-
-        if (rb.linearVelocity.magnitude > MaxVelocity)
+        else
         {
-            rb.linearVelocity = Vector3.ClampMagnitude(rb.linearVelocity, MaxVelocity);
+            Destroy(gameObject);
         }
     }
 
@@ -67,6 +114,7 @@ public class Ball : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        // 1. HIT A BRICK
         if (collision.gameObject.CompareTag("Brick"))
         {
             if (collision.gameObject.TryGetComponent(out SpriteRenderer brickRenderer))
@@ -79,21 +127,47 @@ public class Ball : MonoBehaviour
             _landParticles.Clear();
             _landParticles.Play();
 
+            if (audioSource != null && blockHit != null)
+            {
+                audioSource.pitch = 1.25f; 
+                audioSource.PlayOneShot(blockHit, 0.4f);
+            }
+
             Destroy(collision.gameObject);
             Score = Score + 10;
+            
             if (scoreText != null) scoreText.text = Score.ToString("00000");
 
-            BrickCount--;
-            if (BrickCount <= 0)
+            Ball[] activeBalls = FindObjectsByType<Ball>(FindObjectsSortMode.None);
+            foreach (Ball b in activeBalls)
             {
-                HandleLevelClear();
+                b.BrickCount--;
+                if (b.BrickCount <= 0)
+                {
+                    b.HandleLevelClear();
+                }
             }
         }
-
-        if (collision.gameObject.CompareTag("Player"))
+        // 2. HIT THE PADDLE (PLAYER)
+        else if (collision.gameObject.CompareTag("Player"))
         {
             _jumpParticles.transform.position = collision.contacts[0].point;
             _jumpParticles.Play();
+
+            if (audioSource != null && paddleSound != null)
+            {
+                audioSource.pitch = 2f; 
+                audioSource.PlayOneShot(paddleSound, 0.5f);
+            }
+        }
+        // 3. HIT ANYTHING ELSE (WALLS / CEILING)
+        else
+        {
+            if (audioSource != null && paddleSound != null)
+            {
+                audioSource.pitch = 2f; 
+                audioSource.PlayOneShot(paddleSound, 0.4f);
+            }
         }
     }
 
@@ -101,20 +175,16 @@ public class Ball : MonoBehaviour
     {
         if (GameManager.Instance != null)
         {
-            // Complete current level and verify if it was the definitive final layout match
             bool isGameFinished = GameManager.Instance.CompleteCurrentLevel(currentLevelIndex);
 
             if (isGameFinished)
             {
-                // Absolute completion! Freeze space calculations and load the victory splash screen panel
                 rb.linearVelocity = Vector2.zero;
                 if (WinnerPanel != null) WinnerPanel.SetActive(true);
                 Time.timeScale = 0f;
             }
             else
             {
-                // There are still layouts left! Instantly loop in the next prefab configuration in-scene
-                ResetBallPhysics();
                 if (LevelLoader.Instance != null)
                 {
                     LevelLoader.Instance.SpawnNextRandomLevel();
@@ -123,7 +193,6 @@ public class Ball : MonoBehaviour
         }
         else
         {
-            // Fallback emergency option if testing standalone
             rb.linearVelocity = Vector2.zero;
             if (WinnerPanel != null) WinnerPanel.SetActive(true);
             Time.timeScale = 0f;
