@@ -40,12 +40,12 @@ public class PowerUp : MonoBehaviour
         switch (type)
         {
             case PowerUpType.ExtraLife:
-                if (ball != null && ball.Lives < ball.LivesImage.Length)
+                if (ball != null)
                 {
-                    ball.LivesImage[ball.Lives].SetActive(true);
-                    ball.Lives++;
+                    // This safely checks the max cap of 5 and updates the correct UI heart seamlessly!
+                    ball.TryGainExtraLife();
                 }
-                break;
+            break;
 
             case PowerUpType.MultiBall:
                 if (ball != null)
@@ -76,7 +76,7 @@ public class PowerUp : MonoBehaviour
                 else
                 {
                     // Fallback if no specific script manages it
-                    StartCoroutine(ScalePaddleRoutine(paddle.transform, 15f));
+                    StartCoroutine(ScalePaddleRoutine(paddle.transform, 7.5f));
                 }
                 break;
         }
@@ -88,12 +88,12 @@ public class PowerUp : MonoBehaviour
         // We assume the baseline default scale of your paddle on X is what it started with.
         // If it's already modified, we trace back or apply a hard limit relative to a normal scale of 1.
         float normalScaleX = 1f; 
-        float maxScaleX = normalScaleX * 3.5f;
+        float maxScaleX = normalScaleX * 1.75f;
 
         Vector3 currentScale = paddleTransform.localScale;
         
         // Calculate the target scale (double the current width)
-        float targetScaleX = currentScale.x * 2f;
+        float targetScaleX = currentScale.x * 1.25f;
 
         // Clamp the new target scale so it never exceeds 3.5x normal size
         if (targetScaleX > maxScaleX)

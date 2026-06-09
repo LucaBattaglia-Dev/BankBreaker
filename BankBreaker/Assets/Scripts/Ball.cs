@@ -6,11 +6,16 @@ using TMPro;
 public class Ball : MonoBehaviour
 {
     [SerializeField] public float MinY = -15f;
+    [SerializeField] public float MaxY = 20f;
     [SerializeField] public float MaxVelocity = 15f;
     public float Score = 0;
-    [SerializeField] public int Lives = 5;
+    
+    [Header("Life System Settings")]
+    [SerializeField] public int Lives = 3;             // Starts at 3
+    private const int MAX_LIVES = 5;                  // Absolute maximum limit
+    
     public TextMeshProUGUI scoreText;
-    public GameObject[] LivesImage;
+    public GameObject[] LivesImage;                  // Assumed size of 5 elements in Inspector
     public GameObject GameOverPanel;
     public GameObject WinnerPanel;
 
@@ -29,7 +34,6 @@ public class Ball : MonoBehaviour
     [SerializeField] private AudioClip blockHit; 
     [Tooltip("Drag your Paddle/Wall bounce audio clip here")]
     [SerializeField] private AudioClip paddleSound; 
-    // --- NEW AUDIO VARIABLE ---
     [Tooltip("Drag your Lose Life audio clip here")]
     [SerializeField] private AudioClip loseLifeSound; 
     private AudioSource audioSource;
@@ -41,6 +45,23 @@ public class Ball : MonoBehaviour
         if (!TryGetComponent(out audioSource))
         {
             audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        // --- NEW INITIALIZATION CODE ---
+        // Ensure starting lives don't accidentally exceed the hard cap
+        if (Lives > MAX_LIVES) Lives = MAX_LIVES;
+
+        // Sync UI at startup: If we start with 3 lives, deactivate index 3 and 4 (hearts 4 and 5)
+        if (LivesImage != null)
+        {
+            for (int i = 0; i < LivesImage.Length; i++)
+            {
+                if (LivesImage[i] != null)
+                {
+                    // Only activate up to the current starting Lives count
+                    LivesImage[i].SetActive(i < Lives);
+                }
+            }
         }
         
         Ball[] allBalls = FindObjectsByType<Ball>(FindObjectsSortMode.None);
@@ -64,6 +85,12 @@ public class Ball : MonoBehaviour
             return; 
         }
 
+        if (transform.position.y > MaxY)
+        {
+            HandleBallLoss();
+            return;
+        }
+
         if (rb.linearVelocity.magnitude > MaxVelocity)
         {
             rb.linearVelocity = Vector3.ClampMagnitude(rb.linearVelocity, MaxVelocity);
@@ -76,12 +103,19 @@ public class Ball : MonoBehaviour
 
         if (activeBalls.Length <= 1)
         {
-            // --- NEW CODE: PLAY LOSE LIFE SOUND ---
-            // We play this right before checking for Game Over or resetting
             if (audioSource != null && loseLifeSound != null)
             {
-                audioSource.pitch = 1f; // Keep it at normal speed/pitch
+                audioSource.pitch = 1f; 
                 audioSource.PlayOneShot(loseLifeSound, 0.6f); 
+            }
+
+            // Lose a life first so our tracking matches the array logic perfectly
+            Lives--;
+
+            // Turn off the heart icon corresponding to the lost life slot
+            if (LivesImage != null && Lives >= 0 && Lives < LivesImage.Length && LivesImage[Lives] != null)
+            {
+                LivesImage[Lives].SetActive(false);
             }
 
             if (Lives <= 0)
@@ -90,12 +124,6 @@ public class Ball : MonoBehaviour
             }
             else
             {
-                Lives = Lives - 1;
-                if (LivesImage != null && Lives < LivesImage.Length && LivesImage[Lives] != null)
-                {
-                    LivesImage[Lives].SetActive(false);
-                }
-
                 ResetBallPhysics();
             }
         }
@@ -105,16 +133,46 @@ public class Ball : MonoBehaviour
         }
     }
 
+    // Call this method from your Extra Life PowerUp script instead of directly editing variables!
+    public bool TryGainExtraLife()
+    {
+        if (Lives >= MAX_LIVES) return false; // Firmly block gaining more than 5 lives
+
+        if (LivesImage != null && Lives < LivesImage.Length && LivesImage[Lives] != null)
+        {
+            LivesImage[Lives].SetActive(true);
+        }
+        
+        Lives++;
+        return true;
+    }
+
     void ResetBallPhysics()
     {
+        // --- NEW TRAIL RESET CODE ---
+        // Find the TrailRenderer component on this ball
+        TrailRenderer trail = GetComponent<TrailRenderer>();
+        if (trail != null)
+        {
+            trail.Clear();          // Instantly wipes away any existing trail points
+            trail.enabled = false;  // Disables the trail so it stops drawing temporarily
+        }
+
+        // Teleport the ball back to the center
         transform.position = Vector3.zero;
+        
         if (rb == null) rb = GetComponent<Rigidbody2D>();
         rb.linearVelocity = Vector2.down * 12.5f;
+
+        // --- RE-ENABLE TRAIL AFTER TELEPORT ---
+        if (trail != null)
+        {
+            trail.enabled = true;   // Turns the trail back on now that the ball is at (0,0)
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // 1. HIT A BRICK
         if (collision.gameObject.CompareTag("Brick"))
         {
             if (collision.gameObject.TryGetComponent(out SpriteRenderer brickRenderer))
@@ -148,7 +206,6 @@ public class Ball : MonoBehaviour
                 }
             }
         }
-        // 2. HIT THE PADDLE (PLAYER)
         else if (collision.gameObject.CompareTag("Player"))
         {
             _jumpParticles.transform.position = collision.contacts[0].point;
@@ -160,7 +217,6 @@ public class Ball : MonoBehaviour
                 audioSource.PlayOneShot(paddleSound, 0.5f);
             }
         }
-        // 3. HIT ANYTHING ELSE (WALLS / CEILING)
         else
         {
             if (audioSource != null && paddleSound != null)

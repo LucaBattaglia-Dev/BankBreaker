@@ -52,7 +52,7 @@ public class PlayerMovement : MonoBehaviour
         Vector3 currentScale = transform.localScale;
         
         // Double it, but cap it firmly at 3.5x the base scale
-        float newScaleX = Mathf.Min(currentScale.x * 2f, baseScaleX * 3.5f);
+        float newScaleX = Mathf.Min(currentScale.x * 1.5f, baseScaleX * 2.5f);
         
         transform.localScale = new Vector3(newScaleX, currentScale.y, currentScale.z);
         
